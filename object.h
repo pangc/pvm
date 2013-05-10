@@ -1,7 +1,7 @@
 #ifndef OBJECT_H_INCLUDED
 #define OBJECT_H_INCLUDED
 
-#define MAX_OBJ 256
+#define MAX_OBJ 16
 
 enum DataType{
     BOOLEAN,

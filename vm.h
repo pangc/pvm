@@ -1,4 +1,5 @@
-#include "stack.h"
+#include <stack>
+#include <set>
 #include <stdlib.h>
 #include <stdio.h>
 #include "object.h"
@@ -27,7 +28,7 @@ enum Opcode{
 
 
 typedef TValue obj;
-typedef Stack<obj *> VMStack;         //index of object sstable
+typedef std::stack<int> OperandStack;         //index of object sstable
 
 
 class Instr{
@@ -53,24 +54,50 @@ public:
 	void Read();
 	void Execute();
 	void Reset();
-	void showStack();
 private:
-    inline void Pushnil(){
-        obj *o3 = (obj *)malloc(sizeof(obj));
-        o3->t = NIL;
-        vmstack.Push(o3);
-    }
-    inline void PushBoolean(int b){
-        obj *o3 = (obj *)malloc(sizeof(obj));
-        o3->t = BOOLEAN;
-        o3->v.b = b;
-        vmstack.Push(o3);
-    }
     obj *tvalue;
 	Instr *instr;
-	VMStack vmstack;
+	OperandStack operstack;
 	obj ObjTable[MAX_OBJ];
+	std::set< int > FreeIndex;
 	int ip;
+	inline void PushBoolean(int b){
+	    int index = GetFreeIndex();
+	    ObjTable[index].t = BOOLEAN;
+	    ObjTable[index].v.b = b;
+	    FreeIndex.erase(index);
+        operstack.push(index);
+	}
+	inline void PushNil(){
+	    int index = GetFreeIndex();
+	    ObjTable[index].t = NIL;
+	    FreeIndex.erase(index);
+        operstack.push(index);
+
+	}
+	inline int GetFreeIndex(){
+        std::set<int>::iterator it = FreeIndex.begin();
+        return *it;
+	}
+	inline void InsertObj(int index,int t,Value v)
+	{
+	    ObjTable[index].t = t;
+	    switch(t){
+	        case NUMBER:
+                ObjTable[index].v.num = v.num;
+                break;
+            case STRING:
+                ObjTable[index].v.str = v.str;
+                break;
+            case BOOLEAN:
+                ObjTable[index].v.b = v.b;
+	    }
+	    FreeIndex.erase(index);
+	}
+	void showFree();
+    void showStack();
+    void showObj();
+    void printObj(obj);
 };
 
 
